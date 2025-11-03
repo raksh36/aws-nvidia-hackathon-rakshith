@@ -1,4 +1,4 @@
-# 🛡️ LogGuardian AI - Autonomous DevOps Agent
+# 🤖 AgentOps - Multi-Agent DevOps Platform
 
 ## NVIDIA x AWS Agentic AI Hackathon Submission
 

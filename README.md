@@ -1,4 +1,4 @@
-# 🛡️ LogGuardian AI - Autonomous DevOps Agent
+# 🤖 AgentOps - Multi-Agent DevOps Platform
 
 **NVIDIA x AWS Agentic AI Hackathon Submission**
 
@@ -78,7 +78,7 @@ Amazon DynamoDB (Storage)
 ### View Demo
 ```bash
 # Open the web interface
-open web/index.html
+https://raksh36.github.io/aws-nvidia-hackathon-rakshith/
 ```
 
 ### Deploy from Scratch
@@ -106,7 +106,7 @@ python deploy_lambdas_sagemaker.py
 
 1. **User**: "Analyze server logs for memory issues"
 
-2. **Task Analyzer** (SageMaker LLM):
+2. **Task Analyzer Agent** (SageMaker LLM):
    - Breaks into 5 actionable subtasks
    - Assigns priorities
    - Estimates completion time
@@ -116,7 +116,7 @@ python deploy_lambdas_sagemaker.py
    - Retrieves relevant knowledge
    - Provides context via vector similarity
 
-4. **Task Executor** (SageMaker LLM):
+4. **Task Executor Agent** (SageMaker LLM):
    - Executes each subtask autonomously
    - Makes decisions based on confidence
    - Reports results and warnings
@@ -268,6 +268,6 @@ MIT License - Built for hackathon purposes
 
 ---
 
-**LogGuardian AI** - Because your servers shouldn't wake you up at 3 AM! 🛡️🤖
+**AgentOps** - Multi-Agent DevOps Platform 🤖
 
 *Autonomous • Intelligent • Production-Ready*
