@@ -11,7 +11,7 @@ C:\Users\raksh\OneDrive\Desktop\Nvidia Hackathon\aws-nvidia-hackathon-rakshith\w
 **Just double-click** `index.html` and it opens in your browser!
 
 **For Demo Video**: This is perfectly professional. Just say:
-> "Here's the LogGuardian AI interface. It connects to our Lambda functions deployed on AWS."
+> "Here's the AgentOps interface. It connects to our Lambda functions deployed on AWS."
 
 ---
 
@@ -83,7 +83,7 @@ It's:
 - ✅ Professional enough
 
 **You can say in the video:**
-> "This is the LogGuardian AI web interface. It demonstrates how users interact with our autonomous agent system, which runs on AWS Lambda and SageMaker."
+> "This is the AgentOps web interface. It demonstrates how users interact with our multi-agent system, which runs on AWS Lambda and SageMaker."
 
 ---
 

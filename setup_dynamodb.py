@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup DynamoDB tables for LogGuardian AI
+Setup DynamoDB tables for AgentOps
 """
 import os
 import sys
@@ -38,7 +38,7 @@ def create_table_if_not_exists(table_name, key_schema, attribute_definitions, bi
         return False
 
 print("=" * 60)
-print("DYNAMODB SETUP - LogGuardian AI")
+print("DYNAMODB SETUP - AgentOps")
 print("=" * 60)
 
 # Table 1: Tasks (for agentic task management)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Deploy Lambda functions for LogGuardian AI
+Deploy Lambda functions for AgentOps
 """
 import os
 import sys
@@ -68,7 +68,7 @@ def create_lambda_role():
         role = iam_client.create_role(
             RoleName=role_name,
             AssumeRolePolicyDocument=json.dumps(trust_policy),
-            Description='Execution role for LogGuardian Lambda functions'
+            Description='Execution role for AgentOps Lambda functions'
         )
         
         # Attach policies
@@ -175,7 +175,7 @@ def test_lambda_function(function_name, test_payload):
 
 def main():
     print("=" * 60)
-    print("LAMBDA DEPLOYMENT - LogGuardian AI")
+    print("LAMBDA DEPLOYMENT - AgentOps")
     print("=" * 60)
     
     # Step 1: Create IAM role

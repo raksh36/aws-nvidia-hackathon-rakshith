@@ -55,7 +55,7 @@ def create_sagemaker_role():
         role = iam_client.create_role(
             RoleName=role_name,
             AssumeRolePolicyDocument=json.dumps(trust_policy),
-            Description='SageMaker execution role for LogGuardian NIMs'
+            Description='SageMaker execution role for AgentOps NIMs'
         )
         
         # Attach policies
