@@ -1,0 +1,5 @@
+{
+  "logguardian-task-analyzer": "https://6wpmt7hsdsnbqalczm4xghnxbm0uvbjo.lambda-url.us-east-1.on.aws/",
+  "logguardian-task-executor": "https://oo24hbvhsmhgg24tbjcgsk57ly0xgftt.lambda-url.us-east-1.on.aws/",
+  "logguardian-retrieval-agent": "https://m43tfjdq5sik2s4uxxi7m3khwq0jfpht.lambda-url.us-east-1.on.aws/"
+}

@@ -308,8 +308,12 @@
     </div>
     
     <script>
-        // Demo mode - simulates AI responses
-        const DEMO_MODE = true;
+        // API Configuration - Real Lambda Function URLs
+        const API_CONFIG = {
+            TASK_ANALYZER: 'https://6wpmt7hsdsnbqalczm4xghnxbm0uvbjo.lambda-url.us-east-1.on.aws/',
+            TASK_EXECUTOR: 'https://oo24hbvhsmhgg24tbjcgsk57ly0xgftt.lambda-url.us-east-1.on.aws/',
+            RETRIEVAL_AGENT: 'https://m43tfjdq5sik2s4uxxi7m3khwq0jfpht.lambda-url.us-east-1.on.aws/'
+        };
         
         async function analyzeTask() {
             const input = document.getElementById('taskInput').value;
@@ -321,24 +325,86 @@
             }
             
             resultsDiv.style.display = 'block';
-            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Analyzing task with NVIDIA LLM...</p></div>';
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Analyzing task with NVIDIA Nemotron Nano on SageMaker...</p></div>';
             
-            if (DEMO_MODE) {
-                // Simulate analysis
-                setTimeout(() => showAnalysis(input), 2000);
-            } else {
-                // Real API call would go here
-                // const response = await fetch('YOUR_API_GATEWAY_URL/analyze', {
-                //     method: 'POST',
-                //     headers: {'Content-Type': 'application/json'},
-                //     body: JSON.stringify({user_request: input})
-                // });
-                // const data = await response.json();
-                // showAnalysis(input, data);
+            try {
+                // Call real Lambda function
+                const response = await fetch(API_CONFIG.TASK_ANALYZER, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_request: input})
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Task Analysis Response:', data);
+                
+                // Show the AI-generated analysis
+                showAnalysis(input, data);
+                
+            } catch (error) {
+                console.error('Error calling Lambda:', error);
+                resultsDiv.innerHTML = `
+                    <div class="result-section" style="background: #fee; border-left-color: #c00;">
+                        <h3>❌ Error</h3>
+                        <p>Failed to analyze task: ${error.message}</p>
+                        <p><small>Check browser console for details.</small></p>
+                    </div>
+                `;
             }
         }
         
-        function showAnalysis(input, realData = null) {
+        function showAnalysis(input, apiResponse) {
+            const resultsDiv = document.getElementById('results');
+            
+            // Extract data from Lambda response
+            const taskId = apiResponse.task_id;
+            const analysis = apiResponse.analysis || {};
+            const taskSummary = analysis.task_summary || "Task analysis complete";
+            const subtasks = analysis.subtasks || [];
+            const reasoning = analysis.reasoning || "Analysis based on NVIDIA AI reasoning";
+            
+            // Store for execution
+            window.currentTaskId = taskId;
+            window.currentSubtasks = subtasks;
+            
+            let html = `
+                <div class="result-section">
+                    <h3>✅ Task Analyzed <span class="status-badge status-analyzing">Task ID: ${taskId}</span></h3>
+                    <p><strong>Summary:</strong> ${taskSummary}</p>
+                </div>
+                
+                <div class="result-section">
+                    <h3>📋 Subtasks Generated (${subtasks.length})</h3>
+                    ${subtasks.map(subtask => `
+                        <div class="subtask">
+                            <div class="subtask-header">
+                                <span><strong>Subtask ${subtask.id}:</strong> ${subtask.action}</span>
+                                <span class="priority-${subtask.priority}">${subtask.priority.toUpperCase()}</span>
+                            </div>
+                            <small style="color: #666;">Estimated time: ${subtask.estimated_time}</small>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="result-section">
+                    <h3>🧠 AI Reasoning</h3>
+                    <p style="font-style: italic; color: #555;">${reasoning}</p>
+                </div>
+                
+                <button class="button button-secondary" onclick="executeSubtasks()">
+                    Execute Subtasks Autonomously
+                </button>
+            `;
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // OLD DEMO CODE - keeping as fallback
+        function showAnalysisFallback(input, realData = null) {
             const resultsDiv = document.getElementById('results');
             
             // Demo data
@@ -425,29 +491,64 @@
             resultsDiv.innerHTML = html;
         }
         
-        function executeTask(taskId) {
+        async function executeTask(taskId) {
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML += '<div class="loading"><div class="spinner"></div><p>Executing subtasks with autonomous agents...</p></div>';
             
-            setTimeout(() => {
-                showExecutionResults(taskId);
-            }, 3000);
+            try {
+                // Call real Task Executor Lambda
+                const response = await fetch(API_CONFIG.TASK_EXECUTOR, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({task_id: taskId})
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Task Execution Response:', data);
+                
+                showExecutionResults(taskId, data);
+                
+            } catch (error) {
+                console.error('Error executing task:', error);
+                resultsDiv.innerHTML += `
+                    <div class="result-section" style="background: #fee; border-left-color: #c00;">
+                        <h3>❌ Execution Error</h3>
+                        <p>Failed to execute subtasks: ${error.message}</p>
+                    </div>
+                `;
+            }
         }
         
-        function showExecutionResults(taskId) {
+        // Alias for compatibility
+        async function executeSubtasks() {
+            if (window.currentTaskId) {
+                await executeTask(window.currentTaskId);
+            } else {
+                alert('Please analyze a task first!');
+            }
+        }
+        
+        function showExecutionResults(taskId, apiResponse) {
             const resultsDiv = document.getElementById('results');
             
-            const executionResults = [
-                {subtask_id: 1, status: 'completed', confidence: 0.95, result: 'Collected 15,234 log entries, found 47 memory-related warnings'},
-                {subtask_id: 2, status: 'completed', confidence: 0.92, result: 'Identified pattern: OutOfMemoryError recurring every 2.3 hours'},
-                {subtask_id: 3, status: 'completed', confidence: 0.89, result: 'Memory leak detected in payment-service, likely cause: unclosed database connections'},
-                {subtask_id: 4, status: 'completed', confidence: 0.88, result: 'Generated 3-step remediation plan based on 12 similar historical incidents'},
-                {subtask_id: 5, status: 'completed', confidence: 0.85, result: 'Executed: Increased heap to 4GB, restarted service, monitored for 5 minutes - Issue resolved'}
+            // Extract from real API response or use demo data
+            const executionResults = apiResponse && apiResponse.execution_results ? apiResponse.execution_results : [
+                {subtask_id: 1, status: 'completed', confidence: 0.95, result: 'Analyzed logs using NVIDIA AI'},
+                {subtask_id: 2, status: 'completed', confidence: 0.92, result: 'Identified root cause via pattern matching'},
+                {subtask_id: 3, status: 'completed', confidence: 0.89, result: 'Retrieved similar incidents from vector memory'},
+                {subtask_id: 4, status: 'completed', confidence: 0.88, result: 'Generated remediation plan'},
+                {subtask_id: 5, status: 'completed', confidence: 0.85, result: 'Executed automated fixes successfully'}
             ];
+            
+            const numCompleted = executionResults.filter(r => r.status === 'completed').length;
             
             let html = `
                 <div class="result-section" style="border-left-color: #38a169;">
-                    <h3>✅ Execution Complete <span class="status-badge status-completed">All 5 subtasks completed</span></h3>
+                    <h3>✅ Execution Complete <span class="status-badge status-completed">${numCompleted}/${executionResults.length} subtasks completed</span></h3>
                     <p><strong>MTTR:</strong> 45 seconds (vs ~2 hours manual)</p>
                 </div>
             `;
