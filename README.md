@@ -238,7 +238,7 @@ aws-nvidia-hackathon-rakshith/
 **Duration**: Under 3 minutes
 
 1. **Problem** (30s): DevOps teams spend hours on manual log analysis
-2. **Solution** (30s): LogGuardian AI - autonomous multi-agent system
+2. **Solution** (30s): AgentOps - autonomous multi-agent system
 3. **Architecture** (45s): Show SageMaker endpoints, Lambda agents, DynamoDB
 4. **Live Demo** (60s): Task submission → Analysis → Execution → Results
 5. **Impact** (15s): 99.7% time savings, 85-95% accuracy, production-ready

@@ -27,7 +27,7 @@
 
 ## 🎯 What Makes This Agentic AI?
 
-Unlike simple chatbots, LogGuardian AI features **3 autonomous agents** that work together:
+Unlike simple chatbots, AgentOps features **3 autonomous agents** that work together:
 
 1. **Task Analyzer Agent** 
    - Decomposes complex requests into actionable subtasks
@@ -336,5 +336,5 @@ MIT License - Built for hackathon purposes
 
 ---
 
-**LogGuardian AI** - Because your servers shouldn't wake you up at 3 AM! 🛡️🤖
+**AgentOps** - Multi-Agent DevOps Platform 🤖
 
