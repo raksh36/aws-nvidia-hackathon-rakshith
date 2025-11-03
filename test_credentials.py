@@ -54,7 +54,7 @@ try:
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "meta/llama-3.1-8b-instruct",
+        "model": "nvidia/llama-3.1-nemotron-nano-8b-instruct",
         "messages": [{"role": "user", "content": "Say 'API works!' in 2 words"}],
         "max_tokens": 10,
         "temperature": 0.1

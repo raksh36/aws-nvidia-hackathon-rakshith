@@ -10,7 +10,7 @@ An intelligent multi-agent system that autonomously monitors, analyzes, and reso
 
 | Requirement | Status | Implementation |
 |-------------|--------|----------------|
-| **NVIDIA LLM NIM** | ✅ | LLaMA 3.1-8B-Instruct on SageMaker |
+| **NVIDIA LLM NIM** | ✅ | LLaMA 3.1-Nemotron-Nano-8B on SageMaker |
 | **NVIDIA Embedding NIM** | ✅ | NV-Embed-v2 on SageMaker |
 | **Amazon SageMaker** | ✅ | 2 live endpoints deployed |
 | **Agentic AI** | ✅ | 3 autonomous cooperating agents |
@@ -57,7 +57,7 @@ An intelligent multi-agent system that autonomously monitors, analyzes, and reso
 
 ```
 Amazon SageMaker (NVIDIA NIMs)
-├── LLaMA 3.1-8B (Reasoning)
+├── LLaMA 3.1-Nemotron-Nano-8B (Reasoning)
 └── NV-Embed-v2 (Embeddings)
         ↓
 AWS Lambda (Agent Orchestration)
@@ -133,7 +133,7 @@ python deploy_lambdas_sagemaker.py
 - Decision-making with confidence scoring
 
 ### 2. NVIDIA NIMs on SageMaker ✅
-- **LLaMA** for chain-of-thought reasoning
+- **LLaMA 3.1-Nemotron-Nano-8B** for chain-of-thought reasoning
 - **NV-Embed-v2** for semantic vector search
 - Both deployed as **Amazon SageMaker AI Endpoints**
 
@@ -155,7 +155,7 @@ python deploy_lambdas_sagemaker.py
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **LLM** | NVIDIA LLaMA 3.1-8B | Task analysis & reasoning |
+| **LLM** | NVIDIA LLaMA 3.1-Nemotron-Nano-8B | Task analysis & reasoning |
 | **Embeddings** | NVIDIA NV-Embed-v2 | Vector search |
 | **Deployment** | Amazon SageMaker | NIM hosting |
 | **Compute** | AWS Lambda | Serverless agents |
@@ -186,7 +186,7 @@ aws-nvidia-hackathon-rakshith/
 ## 🏆 Why This Wins
 
 ### ✅ Meets ALL Requirements
-- NVIDIA LLaMA NIM ✅
+- NVIDIA LLaMA 3.1-Nemotron-Nano-8B NIM ✅
 - NVIDIA Embedding NIM ✅  
 - Amazon SageMaker deployment ✅
 - Full working application ✅
@@ -248,7 +248,7 @@ aws-nvidia-hackathon-rakshith/
 ## 🙏 Acknowledgments
 
 Built for **NVIDIA x AWS Agentic AI Hackathon** using:
-- NVIDIA NIMs (LLaMA 3.1, NV-Embed-v2)
+- NVIDIA NIMs (LLaMA 3.1-Nemotron-Nano-8B, NV-Embed-v2)
 - Amazon Web Services (SageMaker, Lambda, DynamoDB)
 - Python, HTML, JavaScript
 

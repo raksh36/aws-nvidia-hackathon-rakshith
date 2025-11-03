@@ -100,7 +100,7 @@ def predict_fn(input_data, model):
     }
     
     payload = {
-        "model": "meta/llama-3.1-8b-instruct",
+        "model": "nvidia/llama-3.1-nemotron-nano-8b-instruct",
         "messages": messages,
         "max_tokens": max_tokens,
         "temperature": temperature
