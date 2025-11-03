@@ -116,7 +116,6 @@ def lambda_handler(event, context):
         if not task_id:
             return {
                 'statusCode': 400,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'error': 'task_id is required'})
             }
         
@@ -126,7 +125,6 @@ def lambda_handler(event, context):
         if not task:
             return {
                 'statusCode': 404,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'error': 'Task not found'})
             }
         

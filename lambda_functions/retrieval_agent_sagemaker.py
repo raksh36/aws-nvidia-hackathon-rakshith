@@ -96,7 +96,6 @@ def lambda_handler(event, context):
         if not text:
             return {
                 'statusCode': 400,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'error': 'text is required'})
             }
         
@@ -108,7 +107,6 @@ def lambda_handler(event, context):
             
             return {
                 'statusCode': 200,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({
                     'memory_id': memory_id,
                     'status': 'stored',
@@ -135,7 +133,6 @@ def lambda_handler(event, context):
             
             return {
                 'statusCode': 200,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({
                     'results': results_converted,
                     'count': len(results),
@@ -145,7 +142,6 @@ def lambda_handler(event, context):
         else:
             return {
                 'statusCode': 400,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'error': 'action must be "store" or "search"'})
             }
         

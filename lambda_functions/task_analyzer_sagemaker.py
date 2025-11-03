@@ -122,7 +122,6 @@ def lambda_handler(event, context):
         if not user_request:
             return {
                 'statusCode': 400,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({'error': 'user_request is required'})
             }
         
@@ -139,7 +138,6 @@ def lambda_handler(event, context):
         
         return {
             'statusCode': 200,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({
                 'task_id': task_id,
                 'analysis': analysis,
@@ -152,7 +150,6 @@ def lambda_handler(event, context):
         print(f"[ERROR] Task Analyzer failed: {str(e)}")
         return {
             'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({'error': str(e)})
         }
 
