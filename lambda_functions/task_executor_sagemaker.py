@@ -5,6 +5,7 @@ Executes tasks autonomously via SageMaker LLM endpoint
 import json
 import boto3
 import time
+from decimal import Decimal
 
 # Configuration
 SAGEMAKER_LLM_ENDPOINT = 'logguardian-llm-endpoint'
@@ -13,6 +14,16 @@ TABLE_TASKS = 'logguardian-tasks'
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 sagemaker_runtime = boto3.client('sagemaker-runtime', region_name='us-east-1')
 tasks_table = dynamodb.Table(TABLE_TASKS)
+
+def convert_floats(obj):
+    """Convert floats to Decimal for DynamoDB"""
+    if isinstance(obj, dict):
+        return {k: convert_floats(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_floats(item) for item in obj]
+    elif isinstance(obj, float):
+        return Decimal(str(obj))
+    return obj
 
 def call_sagemaker_llm(messages, max_tokens=500, temperature=0.7):
     """Call SageMaker endpoint"""
@@ -47,7 +58,7 @@ def update_task_status(task_id, status, execution_log=None):
     
     if execution_log:
         update_expr += ", execution_log = :log"
-        expr_values[':log'] = execution_log
+        expr_values[':log'] = convert_floats(execution_log)
     
     tasks_table.update_item(
         Key={'task_id': task_id},
