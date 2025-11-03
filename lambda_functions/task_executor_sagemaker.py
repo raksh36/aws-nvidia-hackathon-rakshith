@@ -5,11 +5,13 @@ Executes tasks autonomously via SageMaker LLM endpoint
 import json
 import boto3
 import time
+import requests
 from decimal import Decimal
 
 # Configuration
 SAGEMAKER_LLM_ENDPOINT = 'logguardian-llm-endpoint'
 TABLE_TASKS = 'logguardian-tasks'
+RETRIEVAL_AGENT_URL = 'https://m43tfjdq5sik2s4uxxi7m3khwq0jfpht.lambda-url.us-east-1.on.aws/'
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 sagemaker_runtime = boto3.client('sagemaker-runtime', region_name='us-east-1')
@@ -24,6 +26,29 @@ def convert_floats(obj):
     elif isinstance(obj, float):
         return Decimal(str(obj))
     return obj
+
+def retrieve_similar_incidents(query_text, top_k=3):
+    """Call Retrieval Agent to find similar past incidents"""
+    try:
+        print(f"[RETRIEVAL] Searching for: {query_text[:100]}...")
+        response = requests.post(
+            RETRIEVAL_AGENT_URL,
+            headers={'Content-Type': 'application/json'},
+            json={'text': query_text, 'action': 'search', 'top_k': top_k},
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            results = data.get('results', [])
+            print(f"[RETRIEVAL] Found {len(results)} similar incidents")
+            return results
+        else:
+            print(f"[RETRIEVAL] Search failed: {response.status_code}")
+            return []
+    except Exception as e:
+        print(f"[RETRIEVAL] Error: {str(e)}")
+        return []
 
 def call_sagemaker_llm(messages, max_tokens=500, temperature=0.7):
     """Call SageMaker endpoint"""
@@ -67,13 +92,15 @@ def update_task_status(task_id, status, execution_log=None):
         ExpressionAttributeNames=expr_names
     )
 
-def execute_subtask(subtask, context):
-    """Execute a single subtask"""
+def execute_subtask(subtask, context, similar_incidents=None):
+    """Execute a single subtask with context from similar past incidents"""
     system_prompt = """You are an autonomous task execution agent. You can:
 1. Analyze log data
 2. Identify patterns and issues
 3. Suggest remediation actions
 4. Execute safe operations
+
+When provided with similar past incidents, use them to inform your approach.
 
 Respond in JSON format:
 {
@@ -85,10 +112,18 @@ Respond in JSON format:
   "recommendations": ["recommendation 1"]
 }"""
 
+    # Build context with retrieval results
+    retrieval_context = ""
+    if similar_incidents and len(similar_incidents) > 0:
+        retrieval_context = "\n\nSimilar Past Incidents (for reference):\n"
+        for i, incident in enumerate(similar_incidents[:3], 1):
+            retrieval_context += f"{i}. {incident.get('summary', 'Unknown')}\n"
+            retrieval_context += f"   Solution: {incident.get('solution', 'N/A')}\n"
+
     user_message = f"""
 Task: {subtask.get('action', 'Unknown')}
 Priority: {subtask.get('priority', 'medium')}
-Context: {json.dumps(context)}
+Context: {json.dumps(context)}{retrieval_context}
 
 Execute this task and report results."""
 
@@ -148,17 +183,22 @@ def lambda_handler(event, context):
         
         print(f"[TASK EXECUTOR] Processing {len(subtasks)} subtasks")
         
+        # Retrieve similar past incidents for context
+        user_request = task.get('user_request', '')
+        similar_incidents = retrieve_similar_incidents(user_request, top_k=3)
+        
         execution_results = []
         execution_context = {
             "task_summary": analysis.get('task_summary', ''),
-            "user_request": task.get('user_request', '')
+            "user_request": user_request,
+            "similar_incidents_found": len(similar_incidents)
         }
         
         for subtask in subtasks:
             print(f"[TASK EXECUTOR] Subtask {subtask.get('id')}: {subtask.get('action')}")
             
             try:
-                result = execute_subtask(subtask, execution_context)
+                result = execute_subtask(subtask, execution_context, similar_incidents)
                 result['subtask_id'] = subtask.get('id')
                 result['subtask_action'] = subtask.get('action')
                 result['status'] = 'completed'
@@ -188,7 +228,9 @@ def lambda_handler(event, context):
                 'status': final_status,
                 'execution_results': execution_results,
                 'completed_subtasks': sum(1 for r in execution_results if r.get('status') == 'completed'),
-                'total_subtasks': len(subtasks)
+                'total_subtasks': len(subtasks),
+                'similar_incidents': similar_incidents,
+                'retrieval_used': len(similar_incidents) > 0
             }, default=str)
         }
         
