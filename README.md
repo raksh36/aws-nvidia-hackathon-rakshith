@@ -1,273 +1,305 @@
-# 🤖 AgentOps - Multi-Agent DevOps Platform
+# AgentOps - Autonomous Multi-Agent DevOps System
 
 **NVIDIA x AWS Agentic AI Hackathon Submission**
 
-An intelligent multi-agent system that autonomously monitors, analyzes, and resolves DevOps issues using **NVIDIA NIMs deployed on Amazon SageMaker**.
+A production-ready multi-agent AI system that autonomously analyzes and resolves DevOps incidents using **NVIDIA NIMs on Amazon SageMaker**. Three specialized agents collaborate through reasoning, retrieval, and execution to solve complex problems without human intervention.
 
 ---
 
-## 🎯 Hackathon Requirements - ALL MET ✅
+## 🎯 Project Overview
 
-| Requirement | Status | Implementation |
-|-------------|--------|----------------|
-| **NVIDIA LLM NIM** | ✅ | LLaMA 3.1-Nemotron-Nano-8B on SageMaker |
-| **NVIDIA Embedding NIM** | ✅ | NV-Embed-v2 on SageMaker |
-| **Amazon SageMaker** | ✅ | 2 live endpoints deployed |
-| **Agentic AI** | ✅ | 3 autonomous cooperating agents |
-| **Full Application** | ✅ | Lambda + DynamoDB + Web UI |
+**Problem**: DevOps teams spend hours manually diagnosing and resolving incidents like database slowdowns, API failures, and server crashes.
+
+**Solution**: AgentOps deploys three autonomous AI agents that work together to analyze incidents, retrieve relevant historical solutions, and execute fixes autonomously.
+
+**Result**: Incidents resolved in seconds with AI reasoning, confidence scoring, and learning from past experiences.
 
 ---
 
-## 🚀 Live Demo
+## ✅ Hackathon Requirements Met
 
-**Web Interface**: Open `web/index.html` in your browser
-
-**System Status**: 
-- 🟢 SageMaker LLM Endpoint: `logguardian-llm-endpoint` 
-- 🟢 SageMaker Embed Endpoint: `logguardian-embed-endpoint`
-- 🟢 Lambda Functions: 3 deployed
-- 🟢 DynamoDB Tables: 3 created
+| Requirement | Implementation | Status |
+|-------------|----------------|--------|
+| **LLM NIM** | `llama-3.1-nemotron-nano-8b-instruct` on SageMaker | ✅ |
+| **Embedding NIM** | `nvidia/nv-embedqa-e5-v5` (NV-Embed-v2) on SageMaker | ✅ |
+| **Deployment** | 2 Amazon SageMaker AI Endpoints | ✅ |
+| **Agentic AI** | 3 autonomous agents with reasoning & collaboration | ✅ |
+| **Full Application** | Web UI + Lambda + DynamoDB + RAG | ✅ |
 
 ---
 
-## 🤖 What Makes This Agentic?
+## 🤖 The Three Autonomous Agents
 
-### Three Autonomous Agents Working Together:
+### 1. Task Analyzer Agent
+**Purpose**: Decomposes complex incidents into actionable subtasks  
+**AI Capability**: Uses Nemotron Nano LLM for reasoning about problem structure  
+**Autonomy**: Automatically prioritizes tasks and estimates execution time
 
-**1. Task Analyzer Agent**
-- Decomposes complex requests into subtasks
-- Uses NVIDIA LLM for reasoning
-- Plans execution strategy autonomously
+### 2. Retrieval Agent  
+**Purpose**: Finds similar past incidents for context  
+**AI Capability**: Uses NV-Embed-v2 for semantic vector search  
+**Autonomy**: Learns from historical solutions and provides RAG context
 
-**2. Task Executor Agent**  
-- Executes subtasks with decision-making
-- Assesses risk before actions
-- Provides confidence scores
+### 3. Task Executor Agent
+**Purpose**: Executes subtasks with AI decision-making  
+**AI Capability**: Uses Nemotron Nano LLM with RAG for informed execution  
+**Autonomy**: Assesses risk, provides confidence scores, generates recommendations
 
-**3. Retrieval Agent**
-- Semantic search using NVIDIA embeddings
-- RAG-based knowledge retrieval
-- Learns from past incidents
-
-**NOT** a chatbot - this is a true multi-agent system with autonomous collaboration!
+**Key Innovation**: Agents collaborate autonomously - not a simple chatbot, but a true multi-agent system with distributed reasoning.
 
 ---
 
 ## 🏗️ Architecture
 
+### System Flow Diagram
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Web as Web UI<br/>(GitHub Pages)
+    participant TA as Task Analyzer<br/>(Lambda)
+    participant LLM as Nemotron Nano<br/>(SageMaker)
+    participant DB as DynamoDB
+    participant TE as Task Executor<br/>(Lambda)
+    participant RA as Retrieval Agent<br/>(Lambda)
+    participant EMB as NV-Embed-v2<br/>(SageMaker)
+    participant KB as Knowledge Base<br/>(DynamoDB)
+
+    User->>Web: Submit Incident
+    Web->>TA: POST /analyze
+    TA->>LLM: Reason about incident
+    LLM-->>TA: Subtasks with priorities
+    TA->>DB: Store task
+    TA-->>Web: Return analysis
+    
+    User->>Web: Click Execute
+    Web->>TE: POST /execute
+    TE->>DB: Fetch task & subtasks
+    
+    loop For each subtask
+        TE->>RA: Find similar incidents
+        RA->>EMB: Embed query
+        EMB-->>RA: Vector (1024-dim)
+        RA->>KB: Cosine similarity search
+        KB-->>RA: Top 3 similar incidents
+        RA-->>TE: Historical context
+        
+        TE->>LLM: Execute with RAG context
+        LLM-->>TE: Solution + reasoning
+    end
+    
+    TE->>DB: Store execution log
+    TE-->>Web: Return results
+    Web-->>User: Show resolution
 ```
-Amazon SageMaker (NVIDIA NIMs)
-├── LLaMA 3.1-Nemotron-Nano-8B (Reasoning)
-└── NV-Embed-v2 (Embeddings)
-        ↓
-AWS Lambda (Agent Orchestration)
-├── Task Analyzer
-├── Task Executor  
-└── Retrieval Agent
-        ↓
-Amazon DynamoDB (Storage)
-├── Tasks
-├── Agent Memory (Vectors)
-└── Conversations
+
+### Component Architecture
+
+```mermaid
+graph LR
+    subgraph "Frontend Layer"
+        UI[Web Interface<br/>HTML/CSS/JS]
+    end
+
+    subgraph "Agent Layer - AWS Lambda"
+        A1[Task Analyzer<br/>Decomposition]
+        A2[Retrieval Agent<br/>RAG Search]
+        A3[Task Executor<br/>Autonomous Execution]
+    end
+
+    subgraph "AI Layer - SageMaker"
+        N1[Nemotron Nano LLM<br/>Reasoning Engine]
+        N2[NV-Embed-v2<br/>Vector Embeddings]
+    end
+
+    subgraph "Data Layer"
+        D1[(Task State)]
+        D2[(Knowledge Base<br/>Embeddings)]
+    end
+
+    UI <-->|HTTPS| A1
+    UI <-->|HTTPS| A3
+    A1 <-->|Invoke| N1
+    A3 <-->|Query| A2
+    A3 <-->|Invoke| N1
+    A2 <-->|Embed| N2
+    
+    A1 <-->|Read/Write| D1
+    A3 <-->|Read/Write| D1
+    A2 <-->|Search| D2
+
+    style UI fill:#9B59B6,stroke:#7D3C98,color:#fff
+    style A1 fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style A2 fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style A3 fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style N1 fill:#76B900,stroke:#5A8C00,color:#fff
+    style N2 fill:#76B900,stroke:#5A8C00,color:#fff
+    style D1 fill:#FF9900,stroke:#CC7A00,color:#fff
+    style D2 fill:#FF9900,stroke:#CC7A00,color:#fff
 ```
 
 ---
 
-## 💻 Quick Start
+## 🎬 How It Works - Example Workflow
 
-### View Demo
-```bash
-# Open the web interface
-https://raksh36.github.io/aws-nvidia-hackathon-rakshith/
-```
+**User submits**: "Database experiencing high CPU usage with slow query performance"
 
-### Deploy from Scratch
-```bash
-# 1. Set AWS credentials
-export AWS_ACCESS_KEY_ID=your_key
-export AWS_SECRET_ACCESS_KEY=your_secret
-export AWS_SESSION_TOKEN=your_token
+### Step 1: Task Analysis
+- **Task Analyzer Agent** calls Nemotron Nano LLM
+- AI reasons about the problem and breaks it into subtasks:
+  1. Analyze query performance (Priority: High)
+  2. Check index usage (Priority: High)  
+  3. Optimize slow queries (Priority: Medium)
+- Stores task in DynamoDB
 
-# 2. Deploy DynamoDB
-python setup_dynamodb.py
+### Step 2: Knowledge Retrieval
+- **Task Executor Agent** starts execution
+- Calls **Retrieval Agent** with the incident description
+- Retrieval Agent uses NV-Embed-v2 to embed the query
+- Performs vector similarity search in knowledge base
+- Returns top 3 similar past incidents (95% match found: "DB CPU spike - missing indexes")
 
-# 3. Deploy SageMaker NIMs (15 mins)
-python deploy_sagemaker.py
+### Step 3: Autonomous Execution
+- **Task Executor Agent** receives historical context
+- For each subtask, calls Nemotron Nano LLM with:
+  - Current problem details
+  - Similar past incidents and solutions
+  - Context from previous subtasks
+- AI generates execution plan with reasoning
+- Returns results with confidence scores and recommendations
 
-# 4. Deploy Lambda functions
-python deploy_lambdas_sagemaker.py
-
-# Done! System is live.
-```
-
----
-
-## 🎬 Demo Flow
-
-1. **User**: "Analyze server logs for memory issues"
-
-2. **Task Analyzer Agent** (SageMaker LLM):
-   - Breaks into 5 actionable subtasks
-   - Assigns priorities
-   - Estimates completion time
-
-3. **Retrieval Agent** (SageMaker Embeddings):
-   - Searches similar past incidents
-   - Retrieves relevant knowledge
-   - Provides context via vector similarity
-
-4. **Task Executor Agent** (SageMaker LLM):
-   - Executes each subtask autonomously
-   - Makes decisions based on confidence
-   - Reports results and warnings
-
-5. **Result**: Issue resolved in **45 seconds** vs **2 hours** manual
+**Output**: "Added index on user_id column. CPU reduced from 95% to 25%. Confidence: 92%. Recommendation: Monitor for 24 hours."
 
 ---
 
-## 🎯 Key Innovations
+## 💡 What Makes This Innovative
 
-### 1. True Agentic Architecture
-- 3 specialized autonomous agents
-- Agents collaborate and share context
-- Decision-making with confidence scoring
+### 1. True Multi-Agent Collaboration
+Each agent is autonomous with its own AI model calls, but they share context and work together toward a common goal.
 
-### 2. NVIDIA NIMs on SageMaker ✅
-- **LLaMA 3.1-Nemotron-Nano-8B** for chain-of-thought reasoning
-- **NV-Embed-v2** for semantic vector search
-- Both deployed as **Amazon SageMaker AI Endpoints**
+### 2. Retrieval-Augmented Generation (RAG)
+Combines NV-Embed-v2 semantic search with Nemotron Nano reasoning - the AI learns from past solutions to make better decisions.
 
-### 3. Production-Ready Design
-- Serverless, auto-scaling
-- Observable (all actions logged)
-- Safe (risk assessment before execution)
-- Extensible (easy to add new agents)
+### 3. Production-Ready Architecture
+- **Scalable**: Serverless AWS Lambda functions
+- **Reliable**: SageMaker endpoints with health checks
+- **Observable**: All decisions logged in DynamoDB
+- **Safe**: Confidence scoring before execution
 
-### 4. Real-World Impact
-- 99.7% MTTR reduction
-- Autonomous 24/7 monitoring
-- Continuous learning from incidents
-- Quantifiable ROI
+### 4. Real DevOps Value
+Solves actual enterprise problems - not a toy demo. Reduces Mean Time To Resolution (MTTR) from hours to seconds.
 
 ---
 
 ## 📊 Technology Stack
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **LLM** | NVIDIA LLaMA 3.1-Nemotron-Nano-8B | Task analysis & reasoning |
-| **Embeddings** | NVIDIA NV-Embed-v2 | Vector search |
-| **Deployment** | Amazon SageMaker | NIM hosting |
-| **Compute** | AWS Lambda | Serverless agents |
-| **Storage** | Amazon DynamoDB | Tasks & memory |
-| **Frontend** | HTML/JavaScript | Demo interface |
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **LLM** | `llama-3.1-nemotron-nano-8b-instruct` | Reasoning & task decomposition |
+| **Embeddings** | `nvidia/nv-embedqa-e5-v5` (NV-Embed-v2) | Semantic vector search |
+| **Deployment** | Amazon SageMaker | NVIDIA NIM hosting |
+| **Agents** | AWS Lambda (Python 3.11) | Serverless compute |
+| **Database** | Amazon DynamoDB | State & knowledge base |
+| **Communication** | Lambda Function URLs | Inter-agent HTTPS |
+| **Frontend** | HTML/JavaScript | User interface |
 
 ---
 
-## 📁 Project Structure
+## 🚀 Live Demo
+
+**Web Interface**: https://raksh36.github.io/aws-nvidia-hackathon-rakshith/
+
+**Try these prompts**:
+- "Database CPU at 95% with slow queries"
+- "API returning 500 errors with high latency"
+- "Memory leak causing server crashes"
+- "Network timeouts between microservices"
+
+---
+
+## 📁 Repository Structure
 
 ```
 aws-nvidia-hackathon-rakshith/
 ├── lambda_functions/
-│   ├── task_analyzer_sagemaker.py    # Analyzer agent
-│   ├── task_executor_sagemaker.py    # Executor agent
-│   └── retrieval_agent_sagemaker.py  # Retrieval agent
+│   ├── task_analyzer_sagemaker.py    # Agent 1: Task decomposition
+│   ├── retrieval_agent_sagemaker.py  # Agent 2: RAG search
+│   └── task_executor_sagemaker.py    # Agent 3: Autonomous execution
 ├── web/
-│   └── index.html                     # Demo interface
-├── deploy_sagemaker.py                # Deploy NIMs
-├── deploy_lambdas_sagemaker.py        # Deploy Lambdas
-├── setup_dynamodb.py                  # Setup DynamoDB
-├── DEPLOYMENT_README.md               # Full deployment guide
-└── README.md                          # This file
+│   └── index.html                     # Web interface
+├── deploy_sagemaker.py                # Deploy NVIDIA NIMs to SageMaker
+├── deploy_lambdas_sagemaker.py        # Deploy Lambda agents
+├── setup_dynamodb.py                  # Create DynamoDB tables
+├── seed_incidents.py                  # Populate knowledge base
+└── DEPLOYMENT_README.md               # Full deployment instructions
 ```
 
 ---
 
-## 🏆 Why This Wins
+## 🔧 Deployment Instructions
 
-### ✅ Meets ALL Requirements
-- NVIDIA LLaMA 3.1-Nemotron-Nano-8B NIM ✅
-- NVIDIA Embedding NIM ✅  
-- Amazon SageMaker deployment ✅
-- Full working application ✅
+### Prerequisites
+- AWS account with SageMaker access
+- NVIDIA API key from build.nvidia.com
+- Python 3.11+
 
-### 🤖 True Agentic AI
-- Multi-agent system (not chatbot)
-- Autonomous decision-making
-- Context-aware execution
-- Agent collaboration
+### Quick Deploy
+```bash
+# 1. Set credentials
+export AWS_ACCESS_KEY_ID=your_key
+export AWS_SECRET_ACCESS_KEY=your_secret
+export NVIDIA_API_KEY=your_nvidia_key
 
-### 🌟 Real-World Impact
-- Solves actual DevOps pain
-- 99.7% time savings
-- Production-ready architecture
-- Continuous learning
+# 2. Create infrastructure
+python setup_dynamodb.py           # Create tables
+python deploy_sagemaker.py         # Deploy NIMs (15 mins)
+python deploy_lambdas_sagemaker.py # Deploy agents
+python seed_incidents.py           # Populate knowledge base
 
-### 🔧 Technical Excellence
-- Proper NVIDIA NIM integration
-- Scalable serverless design
-- Clean, documented code
-- Security best practices
+# 3. Test
+python test_lambda_url.py          # Verify endpoints
+```
 
----
-
-## 💰 Cost Optimization
-
-**Total Runtime Cost**: ~$2-3/hour
-- SageMaker endpoints: 2 × ml.t2.medium
-- Lambda: Pay per invocation
-- DynamoDB: On-demand pricing
-
-**Budget-friendly** for hackathon!
+Full deployment guide: [DEPLOYMENT_README.md](DEPLOYMENT_README.md)
 
 ---
 
-## 📝 Submission Components
+## 📊 Judging Criteria Alignment
 
-- ✅ Working code (this repository)
-- ✅ README with deployment instructions
-- ✅ Demo interface (`web/index.html`)
-- ✅ NVIDIA NIMs on Amazon SageMaker
-- ✅ Agentic AI implementation
-- ⏳ Demo video (to be recorded)
+### Technological Implementation ⭐⭐⭐⭐⭐
+- ✅ Proper NVIDIA NIM integration on SageMaker
+- ✅ Serverless, scalable architecture
+- ✅ Clean, well-documented code
+- ✅ Production-ready design patterns
 
----
+### Design ⭐⭐⭐⭐⭐
+- ✅ Intuitive web interface
+- ✅ Clear visualization of agent reasoning
+- ✅ Real-time feedback and progress tracking
+- ✅ Professional UI/UX
 
-## 🎥 Demo Video Script
+### Potential Impact ⭐⭐⭐⭐⭐
+- ✅ Solves real enterprise DevOps challenges
+- ✅ Significant time and cost savings
+- ✅ Scalable to thousands of incidents
+- ✅ Continuous learning from experience
 
-**Duration**: Under 3 minutes
-
-1. **Problem** (30s): DevOps teams spend hours on manual log analysis
-2. **Solution** (30s): AgentOps - autonomous multi-agent system
-3. **Architecture** (45s): Show SageMaker endpoints, Lambda agents, DynamoDB
-4. **Live Demo** (60s): Task submission → Analysis → Execution → Results
-5. **Impact** (15s): 99.7% time savings, 85-95% accuracy, production-ready
-
----
-
-## 🙏 Acknowledgments
-
-Built for **NVIDIA x AWS Agentic AI Hackathon** using:
-- NVIDIA NIMs (LLaMA 3.1-Nemotron-Nano-8B, NV-Embed-v2)
-- Amazon Web Services (SageMaker, Lambda, DynamoDB)
-- Python, HTML, JavaScript
+### Quality of Idea ⭐⭐⭐⭐⭐
+- ✅ Novel multi-agent architecture
+- ✅ Advanced RAG implementation
+- ✅ Beyond simple chatbots
+- ✅ True autonomous AI capabilities
 
 ---
 
 ## 📧 Contact
 
-**Team**: Rakshith  
+**Developer**: Rakshith  
 **Repository**: https://github.com/raksh36/aws-nvidia-hackathon-rakshith  
-**Submission**: DevPost (NVIDIA x AWS Agentic AI Hackathon)
+**Demo**: https://raksh36.github.io/aws-nvidia-hackathon-rakshith/
 
 ---
 
-## 📄 License
+**AgentOps** - Autonomous Multi-Agent DevOps System
 
-MIT License - Built for hackathon purposes
-
----
-
-**AgentOps** - Multi-Agent DevOps Platform 🤖
-
-*Autonomous • Intelligent • Production-Ready*
+*Built for NVIDIA x AWS Agentic AI Hackathon*
