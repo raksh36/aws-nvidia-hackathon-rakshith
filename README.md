@@ -262,6 +262,248 @@ python test_lambda_url.py          # Verify endpoints
 
 Full deployment guide: [DEPLOYMENT_README.md](DEPLOYMENT_README.md)
 
+---
+
+## 🧪 Testing Instructions
+
+### Backend Testing
+
+#### 1. Test SageMaker Endpoints
+
+**Test LLM Endpoint (Nemotron Nano)**
+```bash
+python -c "
+import boto3
+import json
+
+runtime = boto3.client('sagemaker-runtime', region_name='us-east-1')
+
+payload = {
+    'messages': [
+        {'role': 'user', 'content': 'What is 2+2?'}
+    ],
+    'max_tokens': 100,
+    'temperature': 0.7
+}
+
+response = runtime.invoke_endpoint(
+    EndpointName='logguardian-llm-endpoint',
+    ContentType='application/json',
+    Body=json.dumps(payload)
+)
+
+result = json.loads(response['Body'].read())
+print('LLM Response:', result)
+"
+```
+
+**Expected Output**: JSON response with AI-generated answer
+
+**Test Embedding Endpoint (NV-Embed-v2)**
+```bash
+python -c "
+import boto3
+import json
+
+runtime = boto3.client('sagemaker-runtime', region_name='us-east-1')
+
+payload = {
+    'input': 'Database performance issue with high CPU',
+    'input_type': 'query',
+    'model': 'nvidia/nv-embedqa-e5-v5'
+}
+
+response = runtime.invoke_endpoint(
+    EndpointName='logguardian-embed-endpoint',
+    ContentType='application/json',
+    Body=json.dumps(payload)
+)
+
+result = json.loads(response['Body'].read())
+print('Embedding dimensions:', len(result['data'][0]['embedding']))
+print('First 5 values:', result['data'][0]['embedding'][:5])
+"
+```
+
+**Expected Output**: 1024-dimensional embedding vector
+
+#### 2. Test Lambda Functions
+
+**Test Task Analyzer Agent**
+```bash
+# Using provided test script
+python test_lambda_url.py
+```
+
+Or manually test with curl:
+```bash
+curl -X POST "https://your-task-analyzer-url.lambda-url.us-east-1.on.aws/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_request": "Database experiencing high CPU with slow queries"
+  }'
+```
+
+**Expected Output**:
+```json
+{
+  "task_id": "task-xxxxx",
+  "task_summary": "Diagnose and resolve database performance issues",
+  "subtasks": [
+    {
+      "id": 1,
+      "action": "Analyze query performance",
+      "priority": "high",
+      "estimated_time": "10 minutes"
+    }
+  ],
+  "reasoning": "High CPU with slow queries suggests..."
+}
+```
+
+**Test Retrieval Agent**
+```bash
+curl -X POST "https://your-retrieval-agent-url.lambda-url.us-east-1.on.aws/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "API returning 500 errors"
+  }'
+```
+
+**Expected Output**: Similar incidents with similarity scores
+
+**Test Task Executor Agent**
+```bash
+curl -X POST "https://your-task-executor-url.lambda-url.us-east-1.on.aws/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task_id": "task-xxxxx"
+  }'
+```
+
+**Expected Output**: Execution results with confidence scores
+
+#### 3. Check Lambda Logs
+
+**View Real-time Logs**
+```bash
+# Task Analyzer logs
+aws logs tail /aws/lambda/logguardian-task-analyzer --follow --region us-east-1
+
+# Task Executor logs
+aws logs tail /aws/lambda/logguardian-task-executor --follow --region us-east-1
+```
+
+**Look for**: No error messages, successful API calls to SageMaker
+
+---
+
+### Frontend Testing
+
+#### 1. Open Web Interface
+
+**GitHub Pages**: https://raksh36.github.io/aws-nvidia-hackathon-rakshith/
+
+Or open `web/index.html` locally
+
+#### 2. Test Task Analysis
+
+**Steps**:
+1. Enter incident: "Database CPU at 95% with slow queries"
+2. Click **"Analyze Task"** button
+3. Wait 3-5 seconds for response
+
+**Expected Behavior**:
+- ✅ Loading indicator appears
+- ✅ Analysis results display with task summary
+- ✅ Shows 3-5 subtasks with priorities
+- ✅ Displays AI reasoning
+- ✅ "Execute Tasks" button appears
+
+#### 3. Test Task Execution
+
+**Steps**:
+1. After analysis, click **"Execute Tasks"**
+2. Watch progress indicators
+3. Wait 10-20 seconds
+
+**Expected Behavior**:
+- ✅ Shows "Retrieving similar incidents..." message
+- ✅ Displays retrieval results with similarity scores (e.g., 34.8%)
+- ✅ Shows execution results for each subtask
+- ✅ Displays confidence scores (e.g., 92%)
+- ✅ Shows warnings and recommendations
+
+#### 4. Test Multiple Scenarios
+
+**Scenario 1: Database Issues**
+```
+Database experiencing high CPU usage with slow query performance
+```
+
+**Scenario 2: API Failures**
+```
+API returning 500 errors with high latency and timeouts
+```
+
+**Scenario 3: Memory Issues**
+```
+Server memory leak causing crashes every few hours
+```
+
+**Scenario 4: Network Problems**
+```
+Network timeouts between microservices in production
+```
+
+#### 5. Browser Console Testing
+
+**Open DevTools** (F12) and verify:
+
+**Console Tab**:
+- Should show "Task Analysis Response:" log
+- Should show "Task Execution Results:" log
+- Should have NO red error messages
+
+**Network Tab**:
+- Task Analyzer request: 200 status
+- Task Executor request: 200 status
+- Response times: 3-20 seconds
+
+---
+
+### End-to-End Test
+
+**Complete Workflow**:
+1. Submit: "API gateway returning 502 errors intermittently"
+2. Verify analysis shows relevant subtasks with priorities
+3. Execute and verify:
+   - ✅ Retrieval finds similar incidents
+   - ✅ Each subtask executes with RAG context
+   - ✅ Results include specific actions
+   - ✅ Confidence scores 0.7-0.95
+
+**Verify Data Persistence**:
+```bash
+aws dynamodb scan --table-name logguardian-tasks --limit 5 --region us-east-1
+```
+
+---
+
+### Performance Benchmarks
+
+**Expected Response Times**:
+- Task Analysis: 3-8 seconds
+- Retrieval Search: 2-4 seconds  
+- Task Execution (per subtask): 3-6 seconds
+- Total end-to-end: 15-30 seconds
+
+**Expected Accuracy**:
+- Retrieval similarity: >30% for relevant matches
+- Execution confidence: 0.75-0.95
+- Subtask relevance: 90%+ match to request
+
+---
 
 ## 📧 Contact
 
